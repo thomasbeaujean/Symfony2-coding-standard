@@ -82,11 +82,16 @@ class Symfony2_Sniffs_Formatting_LocalVariableImmediatelyReturnedSniff implement
 
         //does the function contains more than once an assignation for this variable
         $count = 0;
+        $semicolonFound = 0;
 
         if ($returnedName !== null) {
             $current = $stackPtr;
-
-            while ($tokens[$current]['type'] !== 'T_FUNCTION') {
+            //the first semicolon is the end of the previous instruction
+            //so we look only into the the two previous semicolons
+            while ($tokens[$current]['type'] !== 'T_FUNCTION' && $semicolonFound < 2) {
+                if ($tokens[$current]['type'] === 'T_SEMICOLON') {
+                    $semicolonFound++;
+                }
                 if ($tokens[$current]['type'] === 'T_VARIABLE'  && $returnedName === $tokens[$current]['content']) {
                     $count++;
                 }
