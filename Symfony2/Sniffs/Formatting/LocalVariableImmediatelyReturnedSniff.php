@@ -60,14 +60,16 @@ class Symfony2_Sniffs_Formatting_LocalVariableImmediatelyReturnedSniff implement
         //if the return is a variable
         $functionEnd = false;
         $current = $stackPtr + 1;
-        $variableReturned = false;
         $returnedName = null;
         while ($functionEnd === false) {
             if ($tokens[$current]['type'] === 'T_SEMICOLON') {
                 $functionEnd = true;
             } elseif ($tokens[$current]['type'] === 'T_VARIABLE') {
-                $variableReturned = true;
-                $returnedName = $tokens[$current]['content'];
+                if ('$this' !== $tokens[$current]['content']) {
+                    $returnedName = $tokens[$current]['content'];
+                }
+            } elseif ($tokens[$current]['type'] === 'T_OBJECT_OPERATOR') {
+                $returnedName = null;
                 $functionEnd = true;
             } elseif ($tokens[$current]['type'] !== 'T_WHITESPACE') {
                 $functionEnd = true;
@@ -77,16 +79,20 @@ class Symfony2_Sniffs_Formatting_LocalVariableImmediatelyReturnedSniff implement
 
         //does the function contains more than once an assignation for this variable
         $count = 0;
-        $current = $stackPtr;
-        while ($tokens[$current]['type'] !== 'T_FUNCTION') {
-            if ($tokens[$current]['type'] === 'T_VARIABLE'  && $returnedName === $tokens[$current]['content']) {
-                $count++;
+
+        if ($returnedName !== null) {
+            $current = $stackPtr;
+
+            while ($tokens[$current]['type'] !== 'T_FUNCTION') {
+                if ($tokens[$current]['type'] === 'T_VARIABLE'  && $returnedName === $tokens[$current]['content']) {
+                    $count++;
+                }
+                $current--;
             }
-            $current--;
         }
 
         //so raise error
-        if ($variableReturned && $count === 1) {
+        if ($returnedName !== null && $count === 1) {
             $phpcsFile->addError(
                 'Local variables should not be declared and then immediately returned or thrown',
                 $stackPtr
