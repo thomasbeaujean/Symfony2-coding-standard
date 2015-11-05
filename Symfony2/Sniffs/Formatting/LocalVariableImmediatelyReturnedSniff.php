@@ -67,11 +67,14 @@ class Symfony2_Sniffs_Formatting_LocalVariableImmediatelyReturnedSniff implement
             } elseif ($tokens[$current]['type'] === 'T_VARIABLE') {
                 if ('$this' !== $tokens[$current]['content']) {
                     $returnedName = $tokens[$current]['content'];
+                } else {
+                    //there is no need to continue if the $this is encountered
+                    $functionEnd = true;
                 }
-            } elseif ($tokens[$current]['type'] === 'T_OBJECT_OPERATOR') {
-                $returnedName = null;
-                $functionEnd = true;
             } elseif ($tokens[$current]['type'] !== 'T_WHITESPACE') {
+                //there is something else than the semicolon after the variable
+                //so it is a false positive
+                $returnedName = null;
                 $functionEnd = true;
             }
             $current++;
