@@ -41,7 +41,7 @@ class Symfony2_Sniffs_Formatting_LocalVariableImmediatelyReturnedSniff implement
      */
     public function register()
     {
-        return array(T_RETURN);
+        return array(T_RETURN, T_THROW);
     }//end register()
 
     /**
